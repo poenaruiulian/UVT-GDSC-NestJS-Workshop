@@ -1,5 +1,7 @@
 import { DataSourceOptions } from 'typeorm';
-import { User } from './users/users.entity';
+//import { User } from './users/users.entity';
+import { Songs } from './songs_playlists/songs.entity';
+import { Playlists } from './songs_playlists/playlists.entity';
 
 const config: DataSourceOptions = {
   type: 'mysql',
@@ -7,8 +9,8 @@ const config: DataSourceOptions = {
   port: 3306,
   username: 'root',
   password: '',
-  database: 'users_module',
-  entities: ['./users/users.entity.ts', User],
+  database: 'songs_playlists',
+  entities: [Songs, Playlists],
   synchronize: true,
 };
 
