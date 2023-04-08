@@ -3,13 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Songs } from './songs.entity';
 import { Playlists } from './playlists.entity';
 import { errorContext } from 'rxjs/internal/util/errorContext';
-import { catchError } from 'rxjs';
+import { catchError, forkJoin, from, map, mergeMap, of, tap } from 'rxjs';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class Songs_playlistsService {
   constructor(
     @InjectRepository(Songs) private songsRepo,
-    @InjectRepository(Playlists) private playlistRepo,
+    @InjectRepository(Playlists) private playlistRepo: Repository<Playlists>,
   ) {}
 
   createSong(song) {
@@ -75,31 +76,21 @@ export class Songs_playlistsService {
   }
 
   avalible_playlists() {
-    const show = this.playlistRepo.findBy({ avalible: true }).then((RES) => {
-      const result = [];
-      RES.forEach((res) => {
-        //todo cum fac sa pot face ce e aici jos?
-        const songsToShow = [];
-        console.log(res);
-        res.songs.forEach((id) => {
-          const songs = this.songsRepo
-            .findOneBy({ id: Number(id) })
-            .then((res) => {
-              return res.title;
-            })
-            .then((title) => {
-              songsToShow.push(title);
-            });
-        });
-        result.push({
-          name: res.name,
-          //songs: songsToShow,
-          songs: res.songs,
-        });
+    const show = from(this.playlistRepo.findBy({ avalible: true }))
+      .pipe(
+        tap(console.log),
+        mergeMap((playlist) => [
+          of(playlist.name),
+          forkJoin(
+            playlist.songs?.map((songId) =>
+              this.songsRepo.findOneBy({ id: songId }),
+            ),
+          ),
+        ]),
+      )
+      .subscribe(([playListName, songs]) => {
+        console.log(playListName);
       });
-      console.log(result);
-      return result;
-    });
     return show;
   }
 
