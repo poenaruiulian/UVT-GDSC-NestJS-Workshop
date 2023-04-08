@@ -3,7 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Songs } from './songs.entity';
 import { Playlists } from './playlists.entity';
 import { errorContext } from 'rxjs/internal/util/errorContext';
-import { catchError, forkJoin, from, map, mergeMap, of, tap } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  forkJoin,
+  from,
+  map,
+  mergeMap,
+  of,
+  tap,
+  toArray,
+} from 'rxjs';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -76,28 +86,34 @@ export class Songs_playlistsService {
   }
 
   avalible_playlists() {
-    const show = from(this.playlistRepo.findBy({ avalible: true }))
-      .pipe(
-        tap(console.log),
-        mergeMap((playlist) => [
+    const show = from(this.playlistRepo.findBy({ avalible: true })).pipe(
+      mergeMap((playlists) => playlists.map((p) => p)),
+      mergeMap((playlist) =>
+        combineLatest([
           of(playlist.name),
-          forkJoin(
-            playlist.songs?.map((songId) =>
+          forkJoin<Songs[]>(
+            playlist.songs.map((songId) =>
               this.songsRepo.findOneBy({ id: songId }),
             ),
           ),
         ]),
-      )
-      .subscribe(([playListName, songs]) => {
-        console.log(playListName);
-      });
+      ),
+      map(([name, songs]) => ({
+        playlist: name,
+        songs: songs.map((s) => s.title),
+      })),
+      toArray(),
+    );
     return show;
   }
 
   getSongs(id) {
-    const show = this.playlistRepo.findOneBy({ id: id }).then((res) => {
-      const songs = this.songsRepo.findBy(res.songs.includes(id));
-      return songs;
+    const show = this.playlistRepo.findOneBy({ id: id }).then((playlist) => {
+      return forkJoin<Songs[]>(
+        playlist.songs.map((songId) =>
+          this.songsRepo.findOneBy({ id: songId }),
+        ),
+      );
     });
     return show;
   }
