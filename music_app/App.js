@@ -9,18 +9,22 @@ export default function App() {
   const [length, setLength] = useState(0)
   const [genre, setGenre] = useState("")
 
+    //todo RENDER config pentru server
   const  addSong = async () => {
-    const resp = await fetch("172.20.10.8:3000/songs_playlists/create_song", {
+    const resp = await fetch("https://65d6-5-14-131-140.eu.ngrok.io/songs_playlists/create_song", {
       method:"POST",
-      body: {
-        title,
-        artist,
-        length,
-        genre
-      }
+        headers: {
+            "Content-Type": "application/json",
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      body: JSON.stringify({
+        "title":title,
+        "artist":artist,
+        "length":length,
+        "genre":genre
+      })
     })
-
-    console.log(resp)
+    console.log("Sent!")
   }
 
   return (

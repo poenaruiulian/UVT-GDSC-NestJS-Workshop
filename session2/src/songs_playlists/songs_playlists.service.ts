@@ -24,6 +24,7 @@ export class Songs_playlistsService {
   ) {}
 
   createSong(song) {
+    console.log(song)
     const newSong = this.songsRepo.create(song);
     console.log(newSong);
     return this.songsRepo.save(newSong);
