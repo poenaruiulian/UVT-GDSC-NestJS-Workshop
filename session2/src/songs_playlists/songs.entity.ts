@@ -12,8 +12,8 @@ export class Songs {
   artist: string;
 
   @Column()
-  length: number;
+  image: string;
 
   @Column()
-  genre: string;
+  link: string;
 }
