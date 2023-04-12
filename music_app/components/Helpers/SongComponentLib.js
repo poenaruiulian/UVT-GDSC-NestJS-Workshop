@@ -4,31 +4,45 @@ import {useState} from "react";
 
 import redirectLocalHost from "../../redirectLocalHost"
 
-export default function SongComponent({title, artist, image, redirectLink}){
+export default function SongComponentLib({title, artist, image, redirectLink}){
 
     const [TITLE ,setTITLE] = useState(title.length>10 ? title.slice(0,10)+" ..." : title)
     const [ARTIST ,setARTIST] = useState(artist.length>10 ? artist.slice(0,10)+" ..." : artist)
 
+    const [inLib, setInLib] = useState(false)
 
 
     const  addSong = async () => {
 
-
-        const resp = await fetch(redirectLocalHost+"/songs_playlists/create_song", {
-            method:"POST",
-            headers: {
-                "Content-Type": "application/json",
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: JSON.stringify({
-                "title":title,
-                "artist":artist,
-                "link":redirectLink,
-                "image":image
+        fetch(redirectLocalHost+"/songs_playlists/songsFromLibrary")
+            .then(resp=>resp.json())
+            .then(res=>{
+                if(res.find({
+                    "title":title,
+                    "artist":artist,
+                    "link":redirectLink,
+                    "image":image
+                })){setInLib(true)}
             })
-        })
-        Alert.alert("",title+" by "+artist+" added to library!")
 
+        if(inLib==false){
+            const resp = await fetch(redirectLocalHost+"/songs_playlists/create_song", {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: JSON.stringify({
+                    "title":title,
+                    "artist":artist,
+                    "link":redirectLink,
+                    "image":image
+                })
+            })
+            Alert.alert("",title+" by "+artist+" added to library!")
+        }else{
+            Alert.alert("","Already in library!")
+        }
     }
 
     return(
@@ -37,22 +51,6 @@ export default function SongComponent({title, artist, image, redirectLink}){
             <View style={styles.details}>
                 <Text style={styles.title}>{TITLE}</Text>
                 <Text style={styles.artist}>{ARTIST}</Text>
-                <TouchableOpacity
-                    style={styles.redirectButton}
-                    onPress={()=>Alert.alert("","Add "+title+" by "+artist+" to library?",[
-                        {
-                            text:"Cancel",
-                            style:"destructive",
-                        },
-                        {
-                            text:"Add",
-                            style:"default",
-                            onPress:addSong
-                        }
-                        ])}
-                >
-                    <Text style={{color:"white",fontWeight:"bold"}}>Add to library</Text>
-                </TouchableOpacity>
             </View>
             <View style={styles.button}>
                 <TouchableOpacity
@@ -96,6 +94,7 @@ const styles = StyleSheet.create({
     details:{
         width:"40%",
         flexDirection:"column",
+        justifyContent:"center",
         gap:5,
         padding:10
     },

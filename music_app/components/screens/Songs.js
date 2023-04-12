@@ -1,16 +1,42 @@
 import { StatusBar } from 'expo-status-bar';
-import {StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Keyboard, ScrollView} from 'react-native';
-import {useState} from "react";
+import {
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    Image,
+    Keyboard,
+    ScrollView,
+    ActivityIndicator,
+    RefreshControl
+} from 'react-native';
+import {useEffect, useState} from "react";
 
 
 import Spacer from "../Helpers/Spacer";
 import SongComponent from "../Helpers/SongComponent";
+import SongComponentLib from "../Helpers/SongComponentLib";
+import redirectLocalHost from "../../redirectLocalHost"
 
 export default function Songs() {
 
     const [searchText, setSearchText] = useState("")
     const [searchedSongs, setSearchedSongs] = useState([])
     const [isGettingSong, setIsGettingSong] = useState(false)
+    const [library,setLibrary] = useState([])
+
+
+    useEffect(()=>{
+        fetch(redirectLocalHost+"/songs_playlists/songsFromLibrary",{method:"GET",})
+            .then(resp=>resp.json())
+            .then(res=> {
+                console.log(res)
+                setLibrary(res)
+            })
+    })
+
+
 
     const searchAnotherSong = (searchedItem,setIsGettingImage,setSearchedSongs) => {
 
@@ -27,15 +53,23 @@ export default function Songs() {
             .then(resp => resp.json())
             .then(resp => {
                 let songs = []
-                resp.tracks.hits.map( s => {
-                    songs.push([s.track.title,
-                        s.track.subtitle,
-                        s.track.images.coverart,
-                        s.track.url])
-                })
-                //console.log(songs)
-                setSearchedSongs(songs)
-                setIsGettingImage(false)
+                if(resp.tracks === undefined){alert("No song with this name, try another one")}
+                else{
+                    resp.tracks.hits.map( s => {
+                        if(library.find(r=> r.title == s.track.title && r.artist === s.track.subtitle)){
+                            console.log("hello")
+                        }else{
+                            songs.push([s.track.title,
+                                s.track.subtitle,
+                                s.track.images.coverart,
+                                s.track.url])
+                        }
+
+                    })
+                    //console.log(songs)
+                    setSearchedSongs(songs)
+                    setIsGettingImage(false)
+                }
             })
 
     }
@@ -47,12 +81,14 @@ export default function Songs() {
 
             <View style={styles.searchContainer}>
                 <TextInput
+                    value={searchText}
                     style={styles.textInput}
                     textAlign={"center"}
                     placeholder={"Add another song ..."}
                     onChangeText={(text)=>setSearchText(text)}
                 />
                 <TouchableOpacity
+                    disabled={searchText === ""}
                     onPress={()=>{
                         searchAnotherSong(searchText,setIsGettingSong,setSearchedSongs)
                         setIsGettingSong(true)
@@ -63,15 +99,50 @@ export default function Songs() {
                 </TouchableOpacity>
             </View>
 
+            <View style={styles.clearSearch}>
+                {
+                    searchedSongs.length !==0 ?
+                        <TouchableOpacity
+                            onPress={()=>{
+                                setSearchedSongs([])
+                                setSearchText("")
+                                Keyboard.dismiss()
+                            }}
+                            style={styles.clearButton}
+                        >
+                            <Text style={{fontWeight:"bold",color:"white"}}>Clear page!</Text>
+                        </TouchableOpacity>:
+                        <Text></Text>
+                }
+            </View>
 
-            {searchedSongs.length==0 && isGettingSong==false?
-                <View>
-                    <Text>Songs in your library</Text>
+
+            {searchedSongs.length===0 && isGettingSong===false?
+                <View style={styles.library}>
+                    <Text style={{fontWeight:"bold",fontSize:24}}>Songs in your library</Text>
+                    <Spacer height={20}/>
+
+                    <ScrollView
+                        contentContainerStyle={styles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {
+                            library.map(song=>{
+                                return(
+                                    <View style={{width:"100%"}}>
+                                        <SongComponentLib key={song.id} title={song.title} artist={song.artist} image={song.image} redirectLink={song.link} />
+                                        <Spacer height={30}/>
+                                    </View>
+                                )
+                            })
+                        }
+                    </ScrollView>
+                    <Spacer height={120}/>
                 </View>
                 :
-                isGettingSong == true ?
+                isGettingSong === true ?
                     <View>
-                        <Text>Try clicking again without changing your search text</Text>
+                        <ActivityIndicator size={"large"}/>
                     </View>
                     :
                     <ScrollView
@@ -82,7 +153,7 @@ export default function Songs() {
                             searchedSongs.map(song=>{
                                 return(
                                     <View style={{width:"100%"}}>
-                                        <SongComponent  title={song[0]} artist={song[1]} image={song[2]} redirectLink={song[3]} />
+                                        <SongComponent key={song[1]} title={song[0]} artist={song[1]} image={song[2]} redirectLink={song[3]} />
                                         <Spacer height={30}/>
                                     </View>
                                 )
@@ -104,11 +175,13 @@ const styles = StyleSheet.create({
         //justifyContent: 'center',
         gap:20,
         flexDirection:"column",
+        width:"100%",
     },
     searchContainer:{
         width:"90%",
         flexDirection:"row",
-        gap:"10%"
+        gap:"10%",
+        height:"2%"
     },
     textInput:{
         backgroundColor:"#D3E0EA",
@@ -119,5 +192,23 @@ const styles = StyleSheet.create({
     scrollView:{
         width:"100%",
         alignItems:"center"
+    },
+    clearSearch:{
+        width:"100%",
+        alignItems:"center"
+    },
+    clearButton:{
+        width:"54%",
+        height:40,
+        alignItems:"center",
+        justifyContent:"center",
+        backgroundColor:"#AA77FF",
+        borderRadius:10,
+    },
+    library:{
+        width:"100%",
+        alignItems:"center",
+        height:"100%"
     }
+
 });
