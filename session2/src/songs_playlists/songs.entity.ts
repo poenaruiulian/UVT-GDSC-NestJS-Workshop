@@ -16,4 +16,7 @@ export class Songs {
 
   @Column()
   link: string;
+
+  @Column({ default: true })
+  get: boolean;
 }

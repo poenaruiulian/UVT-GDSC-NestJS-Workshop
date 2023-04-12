@@ -24,7 +24,7 @@ export class Songs_playlistsService {
   ) {}
 
   createSong(song) {
-    console.log(song)
+    console.log(song);
     const newSong = this.songsRepo.create(song);
     console.log(newSong);
     return this.songsRepo.save(newSong);
@@ -117,5 +117,9 @@ export class Songs_playlistsService {
       );
     });
     return show;
+  }
+
+  returnLibrary() {
+    return this.songsRepo.findBy({ get: true });
   }
 }

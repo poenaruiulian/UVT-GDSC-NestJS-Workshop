@@ -57,4 +57,9 @@ export class Songs_playlistsController {
   async getSongs(@Param('id') id) {
     return await this.songs_playlistsService.getSongs(id);
   }
+
+  @Get("songsFromLibrary")
+  async returnLibrary(){
+    return await this.songs_playlistsService.returnLibrary();
+  }
 }
