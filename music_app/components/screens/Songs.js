@@ -31,7 +31,6 @@ export default function Songs() {
         fetch(redirectLocalHost+"/songs_playlists/songsFromLibrary",{method:"GET",})
             .then(resp=>resp.json())
             .then(res=> {
-                console.log(res)
                 setLibrary(res)
             })
     })
@@ -181,7 +180,7 @@ const styles = StyleSheet.create({
         width:"90%",
         flexDirection:"row",
         gap:"10%",
-        height:"2%"
+        height:"5%"
     },
     textInput:{
         backgroundColor:"#D3E0EA",
