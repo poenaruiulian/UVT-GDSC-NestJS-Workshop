@@ -67,3 +67,19 @@ export = config;
 4. Create an endpoint that removes a song from a playlist.
 5. Create an endpoint that returns a list of available playlists.
 6. Create an endpoint that returns a list of songs in a playlist.
+
+# Final project
+
+A song organizer that uses the endpoints from *session2*. 
+
+<div style="flex-direction:row;">
+    <img src="./imageReadme/IMG_1908.PNG" height="512" width="300">
+    <img src="./imageReadme/IMG_1915.PNG" height="512" width="300">
+</div>
+<br>
+<div style="flex-direction:row;">
+    <img src="./imageReadme/IMG_1912.PNG" height="512" width="300">
+    <img src="./imageReadme/IMG_1913.PNG" height="512" width="300">
+</div>
+
+Something to take in consideration is that if you want to test the app you need to forward your localhost by using **ngrok**. After installing you should run **ngrok http 3000** and copy the link in the **redirectLocalHost.js** file.

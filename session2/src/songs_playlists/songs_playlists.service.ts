@@ -91,6 +91,7 @@ export class Songs_playlistsService {
       mergeMap((playlists) => playlists.map((p) => p)),
       mergeMap((playlist) =>
         combineLatest([
+          of(playlist.id),
           of(playlist.name),
           forkJoin<Songs[]>(
             playlist.songs.map((songId) =>
@@ -99,9 +100,10 @@ export class Songs_playlistsService {
           ),
         ]),
       ),
-      map(([name, songs]) => ({
+      map(([id, name, songs]) => ({
+        id: id,
         playlist: name,
-        songs: songs.map((s) => s.title),
+        songs: songs.length != 0 ? songs.map((s) => s.title) : [],
       })),
       toArray(),
     );
@@ -110,6 +112,7 @@ export class Songs_playlistsService {
 
   getSongs(id) {
     const show = this.playlistRepo.findOneBy({ id: id }).then((playlist) => {
+      console.log(playlist.songs);
       return forkJoin<Songs[]>(
         playlist.songs.map((songId) =>
           this.songsRepo.findOneBy({ id: songId }),
@@ -120,6 +123,10 @@ export class Songs_playlistsService {
   }
 
   returnLibrary() {
-    return this.songsRepo.findBy({ get: true });
+    const show = this.songsRepo.findBy({ get: true }).then((resp) => {
+      return resp;
+    });
+
+    return show;
   }
 }

@@ -9,7 +9,7 @@ import {
     Keyboard,
     ScrollView,
     ActivityIndicator,
-    RefreshControl
+    RefreshControl,
 } from 'react-native';
 import {useEffect, useState} from "react";
 
@@ -28,12 +28,20 @@ export default function Songs() {
 
 
     useEffect(()=>{
-        fetch(redirectLocalHost+"/songs_playlists/songsFromLibrary",{method:"GET",})
-            .then(resp=>resp.json())
-            .then(res=> {
-                setLibrary(res)
-            })
-    })
+        const fetchData = async () => {
+            try{
+                const response = await fetch(redirectLocalHost + "/songs_playlists/songsFromLibrary", {method: "GET",})
+                const json = await response.json()
+                console.log(json)
+                //alert(json)
+                setLibrary(json.reverse())
+
+            }catch (err){console.log(err+" lib")}
+        }
+
+        fetchData()
+
+    },[])
 
 
 
@@ -48,14 +56,14 @@ export default function Songs() {
             }
         };
 
-        fetch('https://shazam.p.rapidapi.com/search?term='+searchedItem+'&locale=en-US&offset=0&limit=5', options)
+        fetch('https://shazam.p.rapidapi.com/search?term='+searchedItem+'&locale=en-US', options)
             .then(resp => resp.json())
             .then(resp => {
                 let songs = []
                 if(resp.tracks === undefined){alert("No song with this name, try another one")}
                 else{
                     resp.tracks.hits.map( s => {
-                        if(library.find(r=> r.title == s.track.title && r.artist === s.track.subtitle)){
+                        if(library.find(r=> r.title === s.track.title && r.artist === s.track.subtitle)){
                             console.log("hello")
                         }else{
                             songs.push([s.track.title,
@@ -69,7 +77,7 @@ export default function Songs() {
                     setSearchedSongs(songs)
                     setIsGettingImage(false)
                 }
-            })
+            }).catch(err=>alert(err))
 
     }
 
@@ -124,8 +132,28 @@ export default function Songs() {
                     <ScrollView
                         contentContainerStyle={styles.scrollView}
                         showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl onRefresh={()=>{
+                                const fetchData = async () => {
+                                    try{
+                                        const response = await fetch(redirectLocalHost + "/songs_playlists/songsFromLibrary", {method: "GET",})
+                                        const json = await response.json()
+                                        console.log(json.reverse())
+                                        //alert(json)
+                                        setLibrary(json)
+
+                                    }catch (err){console.log(err+" lib")}
+                                }
+
+                                fetchData()
+                            }
+                            }/>
+                        }
                     >
                         {
+                            library.length ==0 ?
+                                <Text>Refresh?</Text>
+                                :
                             library.map(song=>{
                                 return(
                                     <View style={{width:"100%"}}>
