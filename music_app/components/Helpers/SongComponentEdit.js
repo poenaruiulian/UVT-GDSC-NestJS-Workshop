@@ -1,35 +1,30 @@
 import {View,Text,StyleSheet,Image, Linking, Alert} from "react-native";
 import {TouchableOpacity} from "react-native-gesture-handler";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 import redirectLocalHost from "../../redirectLocalHost"
 
-export default function SongComponent({key,title, artist, image, redirectLink}){
+
+export default function SongComponentPlaylistEdit({playlistId,songId,title, artist, image, redirectLink}){
 
     const [TITLE ,setTITLE] = useState(title.length>10 ? title.slice(0,10)+" ..." : title)
     const [ARTIST ,setARTIST] = useState(artist.length>10 ? artist.slice(0,10)+" ..." : artist)
 
     const [added, setAdded] = useState(false)
 
+    useEffect(()=>{
+        fetch(redirectLocalHost+"/songs_playlists/songsFromPlaylists/"+playlistId,{method:"GET"})
+            .then(resp=>resp.json())
+            .then(res=>{
+                if(res.find(song=>song.id==songId)){setAdded(true)}
+            }).catch(err=>console.log(err))
+    })
+
     const  addSong = async () => {
-
-
-        const resp = await fetch(redirectLocalHost+"/songs_playlists/create_song", {
-            method:"POST",
-            headers: {
-                "Content-Type": "application/json",
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: JSON.stringify({
-                "title":String(title),
-                "artist":artist,
-                "link":redirectLink,
-                "image":image
-            })
-        }).catch(err=>console.log(err))
-        Alert.alert("",title+" by "+artist+" added to library!")
-
+        console.log(playlistId, songId)
+        await fetch(redirectLocalHost+"/songs_playlists/updatePlaylist/"+playlistId+"/song/"+songId,{method:"PATCH"});
     }
+
 
     return(
         <View style={styles.container}>
@@ -41,7 +36,7 @@ export default function SongComponent({key,title, artist, image, redirectLink}){
                     added == false?
                         <TouchableOpacity
                             style={styles.redirectButton}
-                            onPress={()=>Alert.alert("","Add "+title+" by "+artist+" to library?",[
+                            onPress={()=>Alert.alert("","Add "+title+" by "+artist+" to playlist?",[
                                 {
                                     text:"Cancel",
                                     style:"destructive",
@@ -49,23 +44,25 @@ export default function SongComponent({key,title, artist, image, redirectLink}){
                                 {
                                     text:"Add",
                                     style:"default",
-                                    onPress: ()=> {
-                                        addSong();
+                                    onPress: ()=>{
+                                        addSong()
                                         setAdded(true)
                                     }
-                                    }
-
+                                }
                             ])}
                         >
-                            <Text style={{color:"white",fontWeight:"bold"}}>Add to library</Text>
+                            <Text style={{color:"white",fontWeight:"bold"}}>Add to playlist</Text>
                         </TouchableOpacity>
-                    :
+                        :
                         <TouchableOpacity
                             style={[styles.redirectButton,{backgroundColor: "#97DEFF"}]}
                         >
                             <Text style={{color:"white",fontWeight:"bold"}}>Added</Text>
                         </TouchableOpacity>
+
+
                 }
+
             </View>
             <View style={styles.button}>
                 <TouchableOpacity

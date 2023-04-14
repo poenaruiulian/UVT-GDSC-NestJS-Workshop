@@ -4,30 +4,17 @@ import {useState} from "react";
 
 import redirectLocalHost from "../../redirectLocalHost"
 
-export default function SongComponent({key,title, artist, image, redirectLink}){
+export default function SongComponentDel({title, artist, image, redirectLink,songId,playlistId}){
 
     const [TITLE ,setTITLE] = useState(title.length>10 ? title.slice(0,10)+" ..." : title)
     const [ARTIST ,setARTIST] = useState(artist.length>10 ? artist.slice(0,10)+" ..." : artist)
 
     const [added, setAdded] = useState(false)
 
-    const  addSong = async () => {
+    const  removeSong = async () => {
 
 
-        const resp = await fetch(redirectLocalHost+"/songs_playlists/create_song", {
-            method:"POST",
-            headers: {
-                "Content-Type": "application/json",
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: JSON.stringify({
-                "title":String(title),
-                "artist":artist,
-                "link":redirectLink,
-                "image":image
-            })
-        }).catch(err=>console.log(err))
-        Alert.alert("",title+" by "+artist+" added to library!")
+        await fetch(redirectLocalHost+"/songs_playlists/removeFromPlaylist/"+playlistId+"/song/"+songId, {method:"PATCH"}).catch(err=>console.log(err))
 
     }
 
@@ -41,29 +28,29 @@ export default function SongComponent({key,title, artist, image, redirectLink}){
                     added == false?
                         <TouchableOpacity
                             style={styles.redirectButton}
-                            onPress={()=>Alert.alert("","Add "+title+" by "+artist+" to library?",[
+                            onPress={()=>Alert.alert("","Remove "+title+" by "+artist+" from playlist?",[
                                 {
-                                    text:"Cancel",
-                                    style:"destructive",
+                                    text:"No",
+                                    style:"default",
                                 },
                                 {
-                                    text:"Add",
-                                    style:"default",
+                                    text:"Yes",
+                                    style:"destructive",
                                     onPress: ()=> {
-                                        addSong();
+                                        removeSong();
                                         setAdded(true)
                                     }
-                                    }
+                                }
 
                             ])}
                         >
-                            <Text style={{color:"white",fontWeight:"bold"}}>Add to library</Text>
+                            <Text style={{color:"white",fontWeight:"bold"}}>Remove</Text>
                         </TouchableOpacity>
-                    :
+                        :
                         <TouchableOpacity
-                            style={[styles.redirectButton,{backgroundColor: "#97DEFF"}]}
+                            style={[styles.redirectButton,{backgroundColor: "#FA9884"}]}
                         >
-                            <Text style={{color:"white",fontWeight:"bold"}}>Added</Text>
+                            <Text style={{color:"white",fontWeight:"bold"}}>Removed</Text>
                         </TouchableOpacity>
                 }
             </View>
@@ -119,7 +106,7 @@ const styles = StyleSheet.create({
         height:"100%"
     },
     redirectButton:{
-        backgroundColor:"#AA77FF",
+        backgroundColor:"#E74646",
         height:"60%",
         alignItems:"center",
         borderRadius:10,
