@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "constants",
+  "info": {
+    "singularName": "constant",
+    "pluralName": "constants",
+    "displayName": "Constant"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "bowling_price_per_hour": {
+      "type": "integer"
+    }
+  }
+}
